@@ -13,7 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.budgetbee.app.utils.ExtractData
 import com.budgetbee.app.utils.SpeechRecognizerManager
+import com.budgetbee.app.utils.convertWordsToNumbers
 
 @Composable
 fun AutoVoiceInputScreen() {
@@ -54,54 +56,156 @@ fun AutoVoiceInputScreen() {
             }
         }
 
-        Column(modifier = Modifier.padding(16.dp)) {
-            OutlinedTextField(
-                value = textResult,
-                onValueChange = { if (editable) textResult = it },
-                enabled = editable,
-                label = { Text("Hasil Suara") },
-                modifier = Modifier.fillMaxWidth()
-            )
+//        Column(modifier = Modifier.padding(16.dp)) {
+//            OutlinedTextField(
+//                value = textResult,
+//                onValueChange = { if (editable) textResult = it },
+//                enabled = editable,
+//                label = { Text("Hasil Suara") },
+//                modifier = Modifier.fillMaxWidth()
+//            )
+//
+//            Spacer(modifier = Modifier.height(12.dp))
+//
+//            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+//                // Tombol Mic selalu ada
+//                Button(
+//                    onClick = {
+//                        if (!isListening) {
+//                            launcher.launch(Manifest.permission.RECORD_AUDIO)
+//                        } else {
+//                            speechRecognizerManager.stopListening()
+//                            isListening = false
+//                        }
+//                    }
+//                ) {
+//                    Icon(imageVector = Icons.Default.Mic, contentDescription = "Mic")
+//                    Spacer(Modifier.width(8.dp))
+//                    Text(if (isListening) "Berhenti" else "Mulai")
+//                }
+//
+//                // Hanya tampil jika ada hasil suara
+//                if (textResult.isNotBlank()) {
+//                    Button(onClick = { textResult = ""; editable = false }) {
+//                        Text("Reset")
+//                    }
+//
+//                    Button(onClick = { editable = true }) {
+//                        Text("Edit")
+//                    }
+//
+//                    Button(
+//                        onClick = {
+//                            Toast.makeText(context, "Terkonfirmasi: $textResult", Toast.LENGTH_SHORT).show()
+//                        },
+//                        enabled = textResult.isNotBlank()
+//                    ) {
+//                        Text("Konfirmasi")
+//                    }
+//                }
+//            }
+//
+//            val parsedText = remember(textResult) {
+//                if (textResult.isNotBlank()) convertWordsToNumbers(textResult) else ""
+//            }
+//            val extractedData = remember(parsedText) {
+//                if (parsedText.isNotBlank()) ExtractData(parsedText).result else emptyMap()
+//            }
+//
+//            Card(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+//                if (parsedText.isNotBlank()) {
+//                    Text("Hasil Parse Angka:")
+//                    Text(parsedText)
+//                }
+//
+//                Column(modifier = Modifier.padding(16.dp)) {
+//                    if (extractedData.isNotEmpty()) {
+//                        Text("Barang  : ${extractedData["barang"] ?: "-"}")
+//                        Text("Jumlah  : ${extractedData["jumlah"] ?: "-"}")
+//                        Text("Harga   : Rp ${extractedData["harga"] ?: "-"}")
+//                        Text("Tempat  : ${extractedData["tempat"] ?: "-"}")
+//                    } else {
+//                        Text("Belum ada input suara.")
+//                    }
+//                }
+//            }
+//        }
+        // Apply background + text colors from theme
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                OutlinedTextField(
+                    value = textResult,
+                    onValueChange = { if (editable) textResult = it },
+                    enabled = editable,
+                    label = { Text("Hasil Suara") },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground)
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Tombol Mic selalu ada
-                Button(
-                    onClick = {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = {
                         if (!isListening) {
                             launcher.launch(Manifest.permission.RECORD_AUDIO)
                         } else {
                             speechRecognizerManager.stopListening()
                             isListening = false
                         }
+                    }) {
+                        Icon(imageVector = Icons.Default.Mic, contentDescription = "Mic")
+                        Spacer(Modifier.width(8.dp))
+                        Text(if (isListening) "Berhenti" else "Mulai")
                     }
-                ) {
-                    Icon(imageVector = Icons.Default.Mic, contentDescription = "Mic")
-                    Spacer(Modifier.width(8.dp))
-                    Text(if (isListening) "Berhenti" else "Mulai")
+
+                    if (textResult.isNotBlank()) {
+                        Button(onClick = { textResult = ""; editable = false }) {
+                            Text("Reset")
+                        }
+
+                        Button(onClick = { editable = true }) {
+                            Text("Edit")
+                        }
+
+                        Button(
+                            onClick = {
+                                Toast.makeText(context, "Terkonfirmasi: $textResult", Toast.LENGTH_SHORT).show()
+                            },
+                            enabled = textResult.isNotBlank()
+                        ) {
+                            Text("Konfirmasi")
+                        }
+                    }
+                }
+                val parsedText = remember(textResult) {
+                    if (textResult.isNotBlank()) convertWordsToNumbers(textResult) else ""
+                }
+                val extractedData = remember(parsedText) {
+                    if (parsedText.isNotBlank()) ExtractData(parsedText).result else emptyMap()
                 }
 
-                // Hanya tampil jika ada hasil suara
-                if (textResult.isNotBlank()) {
-                    Button(onClick = { textResult = ""; editable = false }) {
-                        Text("Reset")
-                    }
+                Card(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        if (parsedText.isNotBlank()) {
+                            Text(parsedText)
+                        }
 
-                    Button(onClick = { editable = true }) {
-                        Text("Edit")
-                    }
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    Button(
-                        onClick = {
-                            Toast.makeText(context, "Terkonfirmasi: $textResult", Toast.LENGTH_SHORT).show()
-                        },
-                        enabled = textResult.isNotBlank()
-                    ) {
-                        Text("Konfirmasi")
+                        if (extractedData.isNotEmpty()) {
+                            Text("Barang  : ${extractedData["barang"] ?: "-"}")
+                            Text("Jumlah  : ${extractedData["jumlah"] ?: "-"}")
+                            Text("Harga   : Rp ${extractedData["harga"] ?: "-"}")
+                            Text("Tempat  : ${extractedData["tempat"] ?: "-"}")
+                        } else {
+                            Text("Belum ada input suara.")
+                        }
                     }
                 }
             }
-
         }
     }

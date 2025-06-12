@@ -13,6 +13,13 @@ import androidx.navigation.NavController
 
 @Composable
 fun AddContent(navController: NavController) {
+    // Theme colors
+    val colorScheme = MaterialTheme.colorScheme
+    val primaryColor = colorScheme.primary
+    val onBackgroundColor = colorScheme.onBackground
+    val buttonColor = colorScheme.primary
+    val textOnButton = colorScheme.onPrimary
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -24,7 +31,7 @@ fun AddContent(navController: NavController) {
             text = "Add Transaction",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF00C88F)
+            color = onBackgroundColor // ganti dari Color(0xFF00C88F) ke warna yang sesuai tema
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -33,18 +40,26 @@ fun AddContent(navController: NavController) {
             onClick = { navController.navigate("auto_voice_input") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = buttonColor,
+                contentColor = textOnButton
+            )
         ) {
-            Text("Started Auto With Your Voice")
+            Text("Start Auto With Your Voice")
         }
 
         Button(
             onClick = { navController.navigate("manual_input") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = buttonColor,
+                contentColor = textOnButton
+            )
         ) {
-            Text("Started Manual With Your Text")
+            Text("Start Manual With Your Text")
         }
     }
 }

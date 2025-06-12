@@ -26,8 +26,14 @@ fun SplashScreen(navController: NavController) {
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
 
+    // Theme colors
+    val colorScheme = MaterialTheme.colorScheme
+    val primaryColor = colorScheme.primary
+    val onPrimaryColor = colorScheme.onPrimary
+
+    // Delay for splash transition
     LaunchedEffect(true) {
-        delay(2000) // splash delay
+        delay(2000)
         navController.navigate("login") {
             popUpTo("splash") { inclusive = true }
         }
@@ -36,7 +42,7 @@ fun SplashScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFEB3B)),
+            .background(primaryColor),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -50,18 +56,22 @@ fun SplashScreen(navController: NavController) {
                 contentDescription = "BudgetBee Logo",
                 modifier = Modifier.size(screenWidth * 0.3f)
             )
+
             Spacer(modifier = Modifier.height(screenHeight * 0.03f))
+
             Text(
                 text = "BudgetBee",
                 fontSize = (screenWidth.value * 0.08f).sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = onPrimaryColor
             )
+
             Spacer(modifier = Modifier.height(screenHeight * 0.015f))
+
             Text(
                 text = "Your smart voice-based money tracker",
                 fontSize = (screenWidth.value * 0.04f).sp,
-                color = Color.Black
+                color = onPrimaryColor
             )
         }
     }

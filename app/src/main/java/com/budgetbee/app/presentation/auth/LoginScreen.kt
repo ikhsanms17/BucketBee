@@ -17,16 +17,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.ui.text.font.FontWeight
+import com.budgetbee.app.data.database.DatabaseHelper
 
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, db: DatabaseHelper) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
+
+    val colorScheme = MaterialTheme.colorScheme
+    val textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface)
 
     Column(
         modifier = Modifier
@@ -40,7 +45,11 @@ fun LoginScreen(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = colorScheme.onBackground
+                )
             }
         }
 
@@ -49,7 +58,8 @@ fun LoginScreen(navController: NavController) {
         Text(
             "Login",
             fontSize = (screenWidth.value * 0.07f).sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -60,8 +70,9 @@ fun LoginScreen(navController: NavController) {
                 email = it
                 showError = false
             },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Email", color = colorScheme.onSurface) },
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = textStyle
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -72,33 +83,39 @@ fun LoginScreen(navController: NavController) {
                 password = it
                 showError = false
             },
-            label = { Text("Password") },
+            label = { Text("Password", color = colorScheme.onSurface) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = textStyle
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                if (email == "admin" && password == "admin") {
-                    navController.navigate("dashboard") {
-                        popUpTo("login") { inclusive = true }
+                if (db.checkLogin(email, password)) {
+                    val userId = db.getUserIdByEmailPassword(email, password)
+                    if (userId != null) {
+                        navController.navigate("dashboard/$userId")
                     }
                 } else {
+                    message = "Invalid credentials"
                     showError = true
                 }
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colorScheme.primary,
+                contentColor = colorScheme.onPrimary
+            ),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Log in", color = Color.Black)
+            Text("Log in")
         }
 
         if (showError) {
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Incorrect email or password", color = MaterialTheme.colorScheme.error)
+            Text(message, color = colorScheme.error)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -107,10 +124,11 @@ fun LoginScreen(navController: NavController) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Don't have an account? ")
+            Text("Don't have an account?", color = colorScheme.onBackground)
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 "Register",
-                color = MaterialTheme.colorScheme.primary,
+                color = colorScheme.primary,
                 modifier = Modifier.clickable {
                     navController.navigate("register")
                 }

@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -41,13 +41,10 @@ android {
 }
 
 dependencies {
-    // Room (SQLite)
-    val roomVersion = "2.7.1"
-
     implementation(libs.androidx.room.runtime)
-    kapt("androidx.room:room-compiler:$roomVersion")
+    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
-
+    implementation("androidx.compose.material3:material3:1.3.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
