@@ -1,7 +1,6 @@
 package com.budgetbee.app.presentation.auth
 
-import android.widget.Toast
-import androidx.compose.foundation.clickable
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,12 +14,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -41,19 +39,23 @@ import com.budgetbee.app.data.database.DatabaseHelper
 
 @Composable
 fun RegisterScreen(navController: NavController, db: DatabaseHelper) {
-  val configuration = LocalConfiguration.current
+    val colorScheme = MaterialTheme.colorScheme
+    val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
-    var email by remember { mutableStateOf("") }
+
     var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
+    var nameError by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+
     var showError by remember { mutableStateOf(false) }
-
+    var message by remember { mutableStateOf("") }
     val context = LocalContext.current
-    val colorScheme = MaterialTheme.colorScheme
 
-    Column(
+    Column (
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
@@ -85,27 +87,35 @@ fun RegisterScreen(navController: NavController, db: DatabaseHelper) {
         Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
-            value = email,
+            value = name,
             onValueChange = {
-                email = it
-                showError = false
+                name = it
+                nameError = false
             },
-            label = { Text("Email", color = colorScheme.onSurface) },
+            label = { Text("Name", color = colorScheme.onSurface) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface)
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface),
+            isError = nameError,
+            supportingText = {
+                if (nameError) Text("Nama tidak boleh kosong", color = MaterialTheme.colorScheme.error)
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = name,
+            value = email,
             onValueChange = {
-                name = it
-                showError = false
+                email = it
+                emailError = false
             },
-            label = { Text("Name", color = colorScheme.onSurface) },
+            label = { Text("Email", color = colorScheme.onSurface) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface)
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface),
+            isError = emailError,
+            supportingText = {
+                if (emailError) Text("Email harus diakhiri dengan @gmail.com", color = MaterialTheme.colorScheme.error)
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -114,26 +124,37 @@ fun RegisterScreen(navController: NavController, db: DatabaseHelper) {
             value = password,
             onValueChange = {
                 password = it
-                showError = false
+                passwordError = false
             },
             label = { Text("Password", color = colorScheme.onSurface) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface)
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onSurface),
+            isError = passwordError,
+            supportingText = {
+                if (passwordError) Text("Password tidak boleh kosong", color = MaterialTheme.colorScheme.error)
+            }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
-            onClick = {
+        Button(onClick = {
+            nameError = name.isBlank()
+            emailError = email.isBlank() || !email.endsWith("@gmail.com")
+            passwordError = password.isBlank()
+
+            if (!nameError && !emailError && !passwordError) {
                 if (db.registerUser(name, email, password)) {
                     message = "Register success"
                     navController.navigate("login")
                 } else {
                     message = "Register failed"
                 }
-            },
+
+                Log.d("RegisterForm", "Nama: $name, Email: $email, Password: $password")
+            }
+        },
             colors = ButtonDefaults.buttonColors(
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary
@@ -142,22 +163,11 @@ fun RegisterScreen(navController: NavController, db: DatabaseHelper) {
         ) {
             Text("Register")
         }
-
-        if (message.isNotBlank()) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(text = message, color = colorScheme.onBackground)
-        }
-
         TextButton(onClick = { navController.navigate("login") }) {
             Text(
                 "Already have an account? Login",
                 color = colorScheme.primary
             )
-        }
-
-        if (showError) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Incorrect email or password", color = colorScheme.error)
         }
     }
 }

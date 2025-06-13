@@ -72,7 +72,8 @@ fun LoginScreen(navController: NavController, db: DatabaseHelper) {
             },
             label = { Text("Email", color = colorScheme.onSurface) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = textStyle
+            textStyle = textStyle,
+            isError = showError
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -87,20 +88,24 @@ fun LoginScreen(navController: NavController, db: DatabaseHelper) {
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
-            textStyle = textStyle
+            textStyle = textStyle,
+            isError = showError
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                if (db.checkLogin(email, password)) {
+                if (db.checkLogin(email.trim(), password)) {
                     val userId = db.getUserIdByEmailPassword(email, password)
                     if (userId != null) {
                         navController.navigate("dashboard/$userId")
+                    } else {
+                        message = "Terjadi kesalahan saat mengambil ID pengguna"
+                        showError = true
                     }
                 } else {
-                    message = "Invalid credentials"
+                    message = "Email atau password salah"
                     showError = true
                 }
             },
